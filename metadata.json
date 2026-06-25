@@ -1,0 +1,6 @@
+{
+  "name": "Happiness Hub",
+  "description": "A modern cashback and deal management portal where agents share affiliate links, buyers browse, and agents, sellers, and admins track order statuses in real-time.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

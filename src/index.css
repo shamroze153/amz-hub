@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+@layer utilities {
+  /* Scrollbar hide utility */
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* ----------------------------------------------------
+   🌸 PREMIUM LIGHT THEME OVERRIDES 
+   Transforming dark/broken layers into an elegant, clean,
+   high-contrast luxury light slate look.
+   ---------------------------------------------------- */
+
+/* Force global body background & text base to be crisp and clean */
+html, body, #root {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Ensure background blocks are smooth off-white */
+.bg-slate-50, .bg-slate-100/50, .bg-slate-50/50 {
+  background-color: #f1f5f9 !important;
+}
+
+/* Ensure white cards are beautifully brilliant white */
+.bg-white {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Glassmorphism for Sticky Header */
+header#app-header {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-bottom-color: #e2e8f0 !important;
+  backdrop-filter: blur(8px);
+}
+
+/* Excellent high-contrast text styles */
+.text-slate-900, .text-slate-800, .text-slate-700, .text-slate-750, .text-slate-850 {
+  color: #0f172a !important;
+}
+.text-slate-650, .text-slate-600, .text-slate-550, .text-slate-500 {
+  color: #475569 !important;
+}
+
+/* Border lines and separators */
+.border-slate-200, .border-slate-200\/60, .border-slate-200\/80, .border-slate-100, .divide-slate-100 > * {
+  border-color: #e2e8f0 !important;
+}
+
+/* Form input, select, textarea overrides - perfect visibility */
+input[type="text"], input[type="password"], input[type="tel"], select, textarea {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+input[type="text"]:focus, input[type="password"]:focus, select:focus, textarea:focus {
+  border-color: #4f46e5 !important;
+  outline: 2px solid rgba(79, 70, 229, 0.1) !important;
+}
+
+/* Selection and hover feedback */
+.hover\:bg-slate-50:hover, .hover\:bg-slate-100:hover, .hover\:bg-slate-100\/50:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+/* List texts should be clear slate */
+.text-slate-805, .text-slate-800 {
+  color: #0f172a !important;
+}
+
+/* Sidebar & Quick access button hover enhancements */
+button.bg-white {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+}
+button.bg-white:hover {
+  background-color: #f8fafc !important;
+}
+
+/* Custom gorgeous animation entry frames */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Beautiful custom selection highlight */
+::selection {
+  background-color: rgba(99, 102, 241, 0.15);
+  color: #4f46e5;
+}
+
