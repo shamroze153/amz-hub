@@ -653,8 +653,8 @@ export default function AdminPage({
                 />
               </div>
               <div className="flex items-center justify-between px-1">
-                <span className="text-[10px] text-indigo-400/80 font-bold font-mono font-sans">SECURE LOGIN</span>
-                <span className="inline-flex items-center bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-1.5 py-0.5 rounded text-[9px] font-bold font-mono">Passcode: 5566</span>
+                <span className="text-[10px] text-indigo-400/80 font-bold font-mono">SECURE LOGIN</span>
+                <span className="text-[10px] text-slate-500 font-medium">AUTHORIZED ONLY</span>
               </div>
             </div>
 

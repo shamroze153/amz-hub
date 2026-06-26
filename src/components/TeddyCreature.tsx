@@ -1,295 +1,423 @@
-import React from 'react';
-import { motion } from 'motion/react';
+import React, { useEffect, useState } from 'react';
+import { motion, useAnimation } from 'motion/react';
 
 export default function TeddyCreature() {
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isWinking, setIsWinking] = useState(false);
+  const earControlsLeft = useAnimation();
+  const earControlsRight = useAnimation();
+
+  // Track mouse position relative to center of the mascot to guide the eye pupils organically
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 3;
+      // Calculate normalized offset from -12 to 12 pixels
+      const dx = ((e.clientX - centerX) / centerX) * 12;
+      const dy = ((e.clientY - centerY) / centerY) * 10;
+      setMousePos({
+        x: Math.max(-12, Math.min(12, dx)),
+        y: Math.max(-10, Math.min(10, dy)),
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Periodic random blinking, winking and ear-twitching to make the mascot feel completely alive
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const rand = Math.random();
+      if (rand < 0.3) {
+        // Wink!
+        setIsWinking(true);
+        setTimeout(() => setIsWinking(false), 250);
+      } else if (rand < 0.6) {
+        // Twitch left ear
+        earControlsLeft.start({
+          rotate: [-6, 15, -6, 10, 0],
+          transition: { duration: 0.6, ease: 'easeInOut' }
+        });
+      } else if (rand < 0.9) {
+        // Twitch right ear
+        earControlsRight.start({
+          rotate: [6, -15, 6, -10, 0],
+          transition: { duration: 0.6, ease: 'easeInOut' }
+        });
+      }
+    }, 4500);
+
+    return () => clearInterval(interval);
+  }, [earControlsLeft, earControlsRight]);
+
   return (
-    <div className="relative w-72 h-72 mx-auto flex items-center justify-center select-none" style={{ perspective: 1000 }}>
-      {/* Soft Ambient Shadow below Teddy */}
-      <motion.div 
-        className="absolute bottom-4 w-40 h-5 bg-slate-900/10 rounded-full blur-md"
-        animate={{ 
-          scale: [0.94, 1.06, 0.94],
-          opacity: [0.6, 0.8, 0.6]
+    <div className="relative w-80 h-80 mx-auto flex items-center justify-center select-none">
+      {/* 1. MAGICAL GLOWING BACKGROUND ORB */}
+      <motion.div
+        className="absolute w-64 h-64 rounded-full bg-gradient-to-tr from-indigo-500/10 via-purple-500/10 to-pink-500/10 blur-3xl"
+        animate={{
+          scale: [0.95, 1.15, 0.95],
+          rotate: [0, 360],
         }}
         transition={{
           repeat: Infinity,
-          duration: 6,
-          ease: "easeInOut"
+          duration: 12,
+          ease: 'linear',
         }}
       />
 
-      {/* Main Teddy SVG */}
-      <svg 
-        viewBox="0 0 200 200" 
-        className="w-full h-full drop-shadow-[0_10px_20px_rgba(0,0,0,0.06)]"
-      >
-        <defs>
-          {/* Teddy Fur Gradients */}
-          <radialGradient id="furGrad" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" stopColor="#DF9F6E" />
-            <stop offset="70%" stopColor="#C27D4C" />
-            <stop offset="100%" stopColor="#A25D2E" />
-          </radialGradient>
-          
-          <radialGradient id="innerEarGrad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#F9D4B5" />
-            <stop offset="100%" stopColor="#E5B289" />
-          </radialGradient>
-
-          <radialGradient id="snoutGrad" cx="50%" cy="30%" r="70%">
-            <stop offset="0%" stopColor="#FFF2E2" />
-            <stop offset="100%" stopColor="#F5DCBF" />
-          </radialGradient>
-
-          <radialGradient id="bellyGrad" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" stopColor="#FFF2E2" />
-            <stop offset="100%" stopColor="#E9CCA7" />
-          </radialGradient>
-
-          <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-          </filter>
-        </defs>
-
-        {/* ==================== BODY (Faces forward, stays mostly still) ==================== */}
-        <g id="teddy-body">
-          {/* Breathing Body */}
-          <motion.g
-            animate={{ 
-              scaleY: [0.98, 1.02, 0.98],
-              scaleX: [1.01, 0.99, 1.01],
-              y: [0.5, -0.5, 0.5]
-            }}
-            transition={{
-              repeat: Infinity,
-              duration: 6,
-              ease: "easeInOut"
-            }}
-            style={{ transformOrigin: '100px 165px' }}
-          >
-            {/* Soft Shadow behind head on neck */}
-            <path d="M 85,115 Q 100,123 115,115" stroke="#7A3D16" strokeWidth="4" strokeLinecap="round" fill="none" opacity="0.15" />
-
-            {/* Base Body Pear Shape */}
-            <path 
-              d="M 68,115 C 50,135 48,175 75,182 C 90,185 110,185 125,182 C 152,175 150,135 132,115 C 122,105 78,105 68,115 Z" 
-              fill="url(#furGrad)" 
-            />
-
-            {/* Soft Fluffy Fur Tufts on Body Sides */}
-            {/* Left side fluff */}
-            <path d="M 58,135 Q 52,138 56,143 M 52,148 Q 46,152 52,156" stroke="#C27D4C" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-            {/* Right side fluff */}
-            <path d="M 142,135 Q 148,138 144,143 M 148,148 Q 154,152 148,156" stroke="#C27D4C" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-
-            {/* Belly Patch (Cream color) */}
-            <path 
-              d="M 80,125 C 65,140 65,170 80,178 C 90,182 110,182 120,178 C 135,170 135,140 120,125 C 110,117 90,117 80,125 Z" 
-              fill="url(#bellyGrad)" 
-            />
-
-            {/* Tiny Fluffy Fur Tufts inside Belly */}
-            <path d="M 95,135 Q 100,133 105,135" stroke="#D3B48F" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-            <path d="M 92,145 Q 100,142 108,145" stroke="#D3B48F" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-
-            {/* Tiny Paws (Forward Facing, Stays Still) */}
-            {/* Left Paw */}
-            <path 
-              d="M 52,165 C 44,165 40,175 48,180 C 55,184 64,180 62,172 C 60,166 56,165 52,165 Z" 
-              fill="#A25D2E" 
-            />
-            {/* Left paw pads */}
-            <circle cx="50" cy="173" r="3.5" fill="#FFF2E2" opacity="0.9" />
-            <circle cx="45" cy="170" r="1.8" fill="#FFF2E2" opacity="0.9" />
-            <circle cx="50" cy="167" r="1.8" fill="#FFF2E2" opacity="0.9" />
-            <circle cx="55" cy="170" r="1.8" fill="#FFF2E2" opacity="0.9" />
-
-            {/* Right Paw */}
-            <path 
-              d="M 148,165 C 156,165 160,175 152,180 C 145,184 136,180 138,172 C 140,166 144,165 148,165 Z" 
-              fill="#A25D2E" 
-            />
-            {/* Right paw pads */}
-            <circle cx="150" cy="173" r="3.5" fill="#FFF2E2" opacity="0.9" />
-            <circle cx="145" cy="170" r="1.8" fill="#FFF2E2" opacity="0.9" />
-            <circle cx="150" cy="167" r="1.8" fill="#FFF2E2" opacity="0.9" />
-            <circle cx="155" cy="170" r="1.8" fill="#FFF2E2" opacity="0.9" />
-          </motion.g>
-        </g>
-
-        {/* ==================== HEAD (Slowly & Smoothly Turns Left & Right) ==================== */}
-        <motion.g
-          id="teddy-head-container"
-          animate={{ 
-            rotateY: [-11, 11, -11], // Slow 3D head rotation
-            rotateZ: [-1.2, 1.2, -1.2], // Gentle tilting
-            x: [-4.5, 4.5, -4.5], // Subtle lateral movement
-            y: [-1, 0.5, -1] // Tiny bobbing
+      {/* 2. PERSISTENT FLOATING SPARKLES (PARTICLES) */}
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-2 h-2 rounded-full bg-indigo-400"
+          style={{
+            top: `${20 + i * 12}%`,
+            left: `${15 + (i * 17) % 70}%`,
+            boxShadow: '0 0 10px #818cf8, 0 0 20px #a78bfa',
+          }}
+          animate={{
+            y: [0, -40, 0],
+            opacity: [0.2, 0.9, 0.2],
+            scale: [0.8, 1.3, 0.8],
           }}
           transition={{
             repeat: Infinity,
-            duration: 6,
-            ease: "easeInOut"
+            duration: 3 + (i % 3),
+            delay: i * 0.4,
+            ease: 'easeInOut',
           }}
-          style={{ transformOrigin: '100px 92px' }}
+        />
+      ))}
+
+      {/* 3. MASCOT CONTAINER (Floats softly in the air) */}
+      <motion.div
+        className="relative w-72 h-72 flex flex-col items-center justify-center"
+        animate={{
+          y: [-6, 6, -6],
+        }}
+        transition={{
+          repeat: Infinity,
+          duration: 5,
+          ease: 'easeInOut',
+        }}
+      >
+        {/* Soft realistic drop shadow under the feet */}
+        <motion.div
+          className="absolute bottom-1 w-44 h-4 bg-slate-950/20 rounded-full blur-md"
+          animate={{
+            scale: [0.9, 1.08, 0.9],
+            opacity: [0.6, 0.8, 0.6],
+          }}
+          transition={{
+            repeat: Infinity,
+            duration: 5,
+            ease: 'easeInOut',
+          }}
+        />
+
+        <svg
+          viewBox="0 0 240 240"
+          className="w-full h-full filter drop-shadow-[0_16px_32px_rgba(0,0,0,0.18)]"
         >
-          {/* EARS (Move with the head) */}
-          {/* Left Ear */}
-          <g id="left-ear">
-            <circle cx="60" cy="50" r="21" fill="url(#furGrad)" />
-            <circle cx="62" cy="52" r="13" fill="url(#innerEarGrad)" />
-            {/* Fluffy tufts inside ear */}
-            <path d="M 52,48 Q 55,42 58,45 M 56,54 Q 61,49 63,53" stroke="#FFF2E2" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.8" />
-          </g>
+          <defs>
+            {/* 3D Soft Fur Body Gradient (Premium Lilac-Blue Hue) */}
+            <radialGradient id="body3D" cx="35%" cy="30%" r="75%">
+              <stop offset="0%" stopColor="#f8fafc" />
+              <stop offset="35%" stopColor="#e2e8f0" />
+              <stop offset="75%" stopColor="#cbd5e1" />
+              <stop offset="100%" stopColor="#94a3b8" />
+            </radialGradient>
 
-          {/* Right Ear */}
-          <g id="right-ear">
-            <circle cx="140" cy="50" r="21" fill="url(#furGrad)" />
-            <circle cx="138" cy="52" r="13" fill="url(#innerEarGrad)" />
-            {/* Fluffy tufts inside ear */}
-            <path d="M 148,48 Q 145,42 142,45 M 144,54 Q 139,49 137,53" stroke="#FFF2E2" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.8" />
-          </g>
+            {/* Inner Ear Peach Cream Gradient */}
+            <linearGradient id="innerEarGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#ffd8d8" />
+              <stop offset="100%" stopColor="#fca5a5" />
+            </linearGradient>
 
-          {/* MAIN HEAD DOME */}
-          <circle cx="100" cy="92" r="44" fill="url(#furGrad)" />
+            {/* Gold Cheek Blush Glow */}
+            <radialGradient id="blushGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#f87171" stopOpacity="0.45" />
+              <stop offset="100%" stopColor="#f87171" stopOpacity="0" />
+            </radialGradient>
 
-          {/* Fluffy Tufts around the Head to create soft, fluffy fur look */}
-          <g id="head-fur-tufts" stroke="#C27D4C" strokeWidth="2" strokeLinecap="round" fill="none">
-            {/* Top crown hair tufts */}
-            <path d="M 96,48 Q 100,40 104,48" fill="url(#furGrad)" stroke="none" />
-            <path d="M 96,48 Q 100,40 104,48" />
-            <path d="M 91,51 Q 95,44 100,50" />
-            <path d="M 100,50 Q 105,43 109,51" />
+            {/* Beautiful Deep Liquid Eye Gradient */}
+            <radialGradient id="liquidEye" cx="40%" cy="30%" r="65%">
+              <stop offset="0%" stopColor="#1e1b4b" />
+              <stop offset="60%" stopColor="#0f172a" />
+              <stop offset="100%" stopColor="#020617" />
+            </radialGradient>
 
-            {/* Cheek tufts left */}
-            <path d="M 58,88 Q 51,91 58,95" />
-            <path d="M 56,96 Q 48,100 57,105" />
-            <path d="M 59,106 Q 52,111 61,114" />
+            {/* Metallic Gold Collar & Accent */}
+            <linearGradient id="goldCollar" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#fbbf24" />
+              <stop offset="50%" stopColor="#f59e0b" />
+              <stop offset="100%" stopColor="#d97706" />
+            </linearGradient>
 
-            {/* Cheek tufts right */}
-            <path d="M 142,88 Q 149,91 142,95" />
-            <path d="M 144,96 Q 152,100 143,105" />
-            <path d="M 141,106 Q 148,111 139,114" />
-          </g>
+            {/* Realistic 3D Shading for Belly */}
+            <radialGradient id="bellyGrad" cx="50%" cy="25%" r="75%">
+              <stop offset="0%" stopColor="#ffffff" />
+              <stop offset="85%" stopColor="#f1f5f9" />
+              <stop offset="100%" stopColor="#e2e8f0" />
+            </radialGradient>
+          </defs>
 
-          {/* CUTE CHEEK BLUSH (Slight rosy circles) */}
-          <circle cx="68" cy="104" r="8" fill="#FF8D8D" opacity="0.32" filter="url(#softGlow)" />
-          <circle cx="132" cy="104" r="8" fill="#FF8D8D" opacity="0.32" filter="url(#softGlow)" />
+          {/* ================= LEFT EAR (Fluffy Bunny/Panda Ear) ================= */}
+          <motion.g
+            animate={earControlsLeft}
+            style={{ transformOrigin: '72px 75px' }}
+          >
+            {/* Outer Ear */}
+            <ellipse
+              cx="72"
+              cy="55"
+              rx="24"
+              ry="38"
+              fill="url(#body3D)"
+              transform="rotate(-15 72 55)"
+            />
+            {/* Inner Soft Ear */}
+            <ellipse
+              cx="72"
+              cy="58"
+              rx="14"
+              ry="26"
+              fill="url(#innerEarGrad)"
+              transform="rotate(-15 72 58)"
+            />
+          </motion.g>
 
-          {/* SNOUT (Cream/Beige backdrop) */}
-          <path 
-            d="M 80,105 C 80,94 120,94 120,105 C 120,116 80,116 80,105 Z" 
-            fill="url(#snoutGrad)" 
-            className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.04)]"
-          />
+          {/* ================= RIGHT EAR (Fluffy Bunny/Panda Ear) ================= */}
+          <motion.g
+            animate={earControlsRight}
+            style={{ transformOrigin: '168px 75px' }}
+          >
+            {/* Outer Ear */}
+            <ellipse
+              cx="168"
+              cy="55"
+              rx="24"
+              ry="38"
+              fill="url(#body3D)"
+              transform="rotate(15 168 55)"
+            />
+            {/* Inner Soft Ear */}
+            <ellipse
+              cx="168"
+              cy="58"
+              rx="14"
+              ry="26"
+              fill="url(#innerEarGrad)"
+              transform="rotate(15 168 58)"
+            />
+          </motion.g>
 
-          {/* SURPRISED OPEN MOUTH & VISIBLE FRONT TEETH */}
-          <g id="mouth">
-            {/* Surprised oval mouth cavity */}
-            <ellipse cx="100" cy="111" rx="6" ry="7.5" fill="#3D1A10" />
+          {/* ================= COSY MASCOT BODY ================= */}
+          <g id="body-base">
+            {/* Rounded soft 3D body sphere */}
+            <ellipse cx="120" cy="170" rx="55" ry="50" fill="url(#body3D)" />
+
+            {/* Cute Creamy White Bellied Patch */}
+            <ellipse cx="120" cy="172" rx="38" ry="32" fill="url(#bellyGrad)" />
+
+            {/* Little Cute Gold Medal Collar Bell */}
+            <circle cx="120" cy="130" r="11" fill="url(#goldCollar)" stroke="#b45309" strokeWidth="1" />
+            <circle cx="120" cy="125" r="4" fill="#fef08a" opacity="0.8" />
+            {/* Tiny Bell Slot */}
+            <circle cx="120" cy="132" r="2.5" fill="#451a03" />
+
+            {/* Left Cute Rounded Foot */}
+            <ellipse cx="80" cy="216" rx="16" ry="12" fill="url(#body3D)" />
+            <circle cx="80" cy="212" r="6" fill="#f1f5f9" />
             
-            {/* Rosy tongue inside */}
-            <path d="M 96,114 C 96,118 104,118 104,114 Z" fill="#FF7070" />
+            {/* Right Cute Rounded Foot */}
+            <ellipse cx="160" cy="216" rx="16" ry="12" fill="url(#body3D)" />
+            <circle cx="160" cy="212" r="6" fill="#f1f5f9" />
 
-            {/* Cute tiny white front teeth (two teeth showing from top of mouth) */}
-            <rect x="96.8" y="103.5" width="3" height="3" rx="0.5" fill="#FFFFFF" />
-            <rect x="100.2" y="103.5" width="3" height="3" rx="0.5" fill="#FFFFFF" />
-            <line x1="100" y1="103.5" x2="100" y2="106.5" stroke="#E2E8F0" strokeWidth="0.4" />
+            {/* Left Hand (resting cozy on belly) */}
+            <ellipse cx="68" cy="164" rx="14" ry="11" fill="url(#body3D)" transform="rotate(25 68 164)" />
           </g>
 
-          {/* SURPRISED NOSE (Cute rounded black/dark espresso triangle) */}
-          <path 
-            d="M 94,98 C 94,96.5 96,94.5 100,94.5 C 104,94.5 106,96.5 106,98 C 106,101 94,101 94,98 Z" 
-            fill="#2D1914" 
-          />
-          {/* Nose shine highlight */}
-          <ellipse cx="98.5" cy="96.5" rx="1.5" ry="0.8" fill="#FFFFFF" opacity="0.8" />
+          {/* ================= COSY WAVING RIGHT HAND (Welcoming!) ================= */}
+          <motion.g
+            id="waving-hand"
+            animate={{
+              rotate: [0, 20, -5, 20, 0],
+            }}
+            transition={{
+              repeat: Infinity,
+              duration: 2.2,
+              ease: 'easeInOut',
+              delay: 0.5,
+            }}
+            style={{ transformOrigin: '168px 164px' }}
+          >
+            {/* Cozy round paw waving */}
+            <ellipse cx="174" cy="154" rx="15" ry="12" fill="url(#body3D)" transform="rotate(-30 174 154)" />
+            {/* Soft pink paw print details */}
+            <circle cx="174" cy="154" r="5" fill="#fca5a5" opacity="0.9" />
+            <circle cx="167" cy="147" r="2" fill="#ffd8d8" opacity="0.9" />
+            <circle cx="175" cy="144" r="2" fill="#ffd8d8" opacity="0.9" />
+            <circle cx="182" cy="149" r="2" fill="#ffd8d8" opacity="0.9" />
+          </motion.g>
 
-          {/* ==================== EYES (Pupils slowly drift to follow head turning naturally) ==================== */}
-          {/* LEFT EYE */}
-          <g id="left-eye-socket">
-            {/* White/light background eye socket */}
-            <ellipse cx="76" cy="84" rx="10.5" ry="11.5" fill="#FFFFFF" stroke="#C27D4C" strokeWidth="1" />
-            
-            {/* Pupil + Iris Container: Moves slightly in sync with the head movement */}
-            <motion.g
-              animate={{ 
-                x: [-3.2, 3.2, -3.2], // Eyes drift naturally to look around
-                y: [-0.6, 0.6, -0.6]
-              }}
-              transition={{
-                repeat: Infinity,
-                duration: 6,
-                ease: "easeInOut"
-              }}
-            >
-              {/* Large Dark Iris */}
-              <circle cx="76" cy="84" r="6.8" fill="#2C1810" />
-              {/* Beautiful Amber Inner Ring */}
-              <circle cx="76" cy="84" r="5" fill="#9C5D34" opacity="0.3" />
-              {/* Black Inner Pupil */}
-              <circle cx="76" cy="84" r="4.2" fill="#0E0705" />
-              
-              {/* Surprised bright highlight reflections */}
-              <circle cx="74" cy="81.5" r="2.2" fill="#FFFFFF" />
-              <circle cx="78.2" cy="86" r="1" fill="#FFFFFF" opacity="0.85" />
-            </motion.g>
+          {/* ================= MASCOT HEAD ================= */}
+          <g id="head-base">
+            {/* Fluffy perfectly round face */}
+            <circle cx="120" cy="100" r="52" fill="url(#body3D)" />
+
+            {/* Soft pink blush cheeks */}
+            <circle cx="84" cy="115" r="12" fill="url(#blushGlow)" />
+            <circle cx="156" cy="115" r="12" fill="url(#blushGlow)" />
+
+            {/* ================= COSY EXPRESSIVE LENS EYES ================= */}
+            {/* LEFT EYE */}
+            <g id="left-eye-container">
+              {isWinking ? (
+                // Happy closed wink curve
+                <path
+                  d="M 76,96 Q 86,106 96,96"
+                  stroke="#1e1b4b"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+              ) : (
+                <>
+                  <ellipse cx="86" cy="96" rx="10" ry="13" fill="url(#liquidEye)" />
+                  {/* Organic Pupil Glinting / Gaze tracking mouse position */}
+                  <motion.circle
+                    cx="88"
+                    cy="94"
+                    r="4.5"
+                    fill="#ffffff"
+                    style={{ x: mousePos.x * 0.4, y: mousePos.y * 0.4 }}
+                  />
+                  {/* Secondary Sparkle reflection */}
+                  <motion.circle
+                    cx="83.5"
+                    cy="99"
+                    r="2"
+                    fill="#ffffff"
+                    opacity="0.8"
+                    style={{ x: mousePos.x * 0.35, y: mousePos.y * 0.35 }}
+                  />
+                  <motion.circle
+                    cx="90.5"
+                    cy="98"
+                    r="1"
+                    fill="#93c5fd"
+                    opacity="0.6"
+                    style={{ x: mousePos.x * 0.5, y: mousePos.y * 0.5 }}
+                  />
+                </>
+              )}
+            </g>
+
+            {/* RIGHT EYE */}
+            <g id="right-eye-container">
+              <ellipse cx="154" cy="96" rx="10" ry="13" fill="url(#liquidEye)" />
+              {/* Gaze tracking mouse position */}
+              <motion.circle
+                cx="152"
+                cy="94"
+                r="4.5"
+                fill="#ffffff"
+                style={{ x: mousePos.x * 0.4, y: mousePos.y * 0.4 }}
+              />
+              {/* Secondary Sparkle reflection */}
+              <motion.circle
+                cx="147.5"
+                cy="99"
+                r="2"
+                fill="#ffffff"
+                opacity="0.8"
+                style={{ x: mousePos.x * 0.35, y: mousePos.y * 0.35 }}
+              />
+              <motion.circle
+                cx="154.5"
+                cy="98"
+                r="1"
+                fill="#93c5fd"
+                opacity="0.6"
+                style={{ x: mousePos.x * 0.5, y: mousePos.y * 0.5 }}
+              />
+            </g>
+
+            {/* Cute mini eyebrows */}
+            <motion.path
+              d="M 78,78 Q 86,74 94,80"
+              stroke="#64748b"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              fill="none"
+              animate={{ y: [0, -2, 0] }}
+              transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
+            />
+            <motion.path
+              d="M 146,80 Q 154,74 162,78"
+              stroke="#64748b"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              fill="none"
+              animate={{ y: [0, -2, 0] }}
+              transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.2 }}
+            />
+
+            {/* Little Cute Button Nose */}
+            <polygon
+              points="115,108 125,108 120,113"
+              fill="#1e193b"
+              stroke="#1e193b"
+              strokeWidth="1.5"
+              strokeLinejoin="round"
+            />
+            {/* Highlight on nose */}
+            <ellipse cx="120" cy="109" rx="1.5" ry="0.8" fill="#ffffff" opacity="0.8" />
+
+            {/* Joyful open mouth smile */}
+            <path
+              d="M 112,117 Q 120,112 128,117"
+              stroke="#1e193b"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              fill="none"
+            />
+            <path
+              d="M 113.5,117 C 113.5,126 126.5,126 126.5,117"
+              fill="#f43f5e"
+              stroke="#1e193b"
+              strokeWidth="1.5"
+            />
+            {/* Cute tongue inside */}
+            <path
+              d="M 117,121 C 117,121 120,118 123,121 C 123,124 117,124 117,121"
+              fill="#fda4af"
+            />
           </g>
+        </svg>
 
-          {/* RIGHT EYE */}
-          <g id="right-eye-socket">
-            {/* White/light background eye socket */}
-            <ellipse cx="124" cy="84" rx="10.5" ry="11.5" fill="#FFFFFF" stroke="#C27D4C" strokeWidth="1" />
-            
-            {/* Pupil + Iris Container: Moves slightly in sync with the head movement */}
-            <motion.g
-              animate={{ 
-                x: [-3.2, 3.2, -3.2], // Eyes drift naturally to look around
-                y: [-0.6, 0.6, -0.6]
-              }}
-              transition={{
-                repeat: Infinity,
-                duration: 6,
-                ease: "easeInOut"
-              }}
-            >
-              {/* Large Dark Iris */}
-              <circle cx="124" cy="84" r="6.8" fill="#2C1810" />
-              {/* Beautiful Amber Inner Ring */}
-              <circle cx="124" cy="84" r="5" fill="#9C5D34" opacity="0.3" />
-              {/* Black Inner Pupil */}
-              <circle cx="124" cy="84" r="4.2" fill="#0E0705" />
-              
-              {/* Surprised bright highlight reflections */}
-              <circle cx="122" cy="81.5" r="2.2" fill="#FFFFFF" />
-              <circle cx="126.2" cy="86" r="1" fill="#FFFFFF" opacity="0.85" />
-            </motion.g>
-          </g>
-
-          {/* Cute Soft Eye Brows */}
-          <motion.path 
-            d="M 66,70 Q 75,67 83,71" 
-            stroke="#5C341A" 
-            strokeWidth="2.2" 
-            strokeLinecap="round" 
-            fill="none" 
-            opacity="0.85"
-            animate={{ y: [-0.6, 0.6, -0.6] }}
-            transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-          />
-          <motion.path 
-            d="M 117,71 Q 125,67 134,70" 
-            stroke="#5C341A" 
-            strokeWidth="2.2" 
-            strokeLinecap="round" 
-            fill="none" 
-            opacity="0.85"
-            animate={{ y: [-0.6, 0.6, -0.6] }}
-            transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-          />
-        </motion.g>
-      </svg>
+        {/* 4. FLOATING TEXT SPEECH BUBBLE (Welcomes them with cozy aura) */}
+        <motion.div
+          className="absolute -top-10 bg-white/95 border border-slate-100 px-3.5 py-1.5 rounded-2xl shadow-xl text-[11px] font-extrabold text-indigo-700 flex items-center gap-1 backdrop-blur-sm"
+          animate={{
+            scale: [0.96, 1.04, 0.96],
+            y: [0, -3, 0],
+          }}
+          transition={{
+            repeat: Infinity,
+            duration: 4,
+            ease: 'easeInOut',
+          }}
+        >
+          <span className="text-sm">👋</span>
+          <span>Hi! Welcome Back!</span>
+          {/* Bubble tail */}
+          <div className="absolute bottom-[-5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white/95 border-r border-b border-slate-100 rotate-45" />
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

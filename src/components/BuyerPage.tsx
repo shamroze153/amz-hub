@@ -1183,7 +1183,7 @@ export default function BuyerPage({
                 <div className="absolute top-1/2 right-10 h-60 w-60 rounded-full bg-pink-500/10 blur-[90px]" />
 
                 <div className="relative max-w-4xl mx-auto space-y-6">
-                  {/* Adorable Teddy Creature welcome graphic */}
+                  {/* Adorable Welcoming Mickey Mouse Mascot */}
                   <div className="relative z-20">
                     <TeddyCreature />
                   </div>
