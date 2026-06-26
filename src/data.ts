@@ -621,7 +621,7 @@ export class LiveGASClient {
       }
       return result;
     } catch (err: any) {
-      console.error('GAS Client Request Failed via Proxy:', err);
+      console.warn('GAS Client Request Failed via Proxy:', err);
       throw new Error(err.message || 'CORS or spreadsheet proxy communication error. Please ensure your Google Apps Script is deployed.');
     }
   }
@@ -662,7 +662,7 @@ export class LiveGASClient {
     return this.request(config, 'addBuyer', { buyer });
   }
 
-  static async deleteRecord(config: HubConfig, sheetName: string, idKey: string, idValue: string) {
+  static async deleteRecord(config: HubConfig, sheetName: string, idKey: string, idValue: string | string[]) {
     return this.request(config, 'deleteRecord', { sheetName, idKey, idValue });
   }
 }

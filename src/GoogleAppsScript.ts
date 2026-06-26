@@ -838,12 +838,21 @@ function deleteRecord(sheetName, idKey, idValue) {
     throw new Error("Column ID key '" + idKey + "' not found in sheet: " + sheetName);
   }
   
+  // Convert idValue to an array of trimmed string targets for reliable matching
+  var targets = [];
+  if (Array.isArray(idValue)) {
+    targets = idValue.map(function(v) { return String(v).trim(); });
+  } else if (typeof idValue === "string" && idValue.indexOf(",") !== -1) {
+    targets = idValue.split(",").map(function(v) { return String(v).trim(); });
+  } else {
+    targets = [String(idValue).trim()];
+  }
+  
   var deletedCount = 0;
   // Iterate backwards to safely delete matching rows without offsetting indices
   for (var i = data.length - 1; i >= 1; i--) {
     var cellValue = String(data[i][colIndex]).trim();
-    var targetValue = String(idValue).trim();
-    if (cellValue === targetValue) {
+    if (targets.indexOf(cellValue) !== -1) {
       sheet.deleteRow(i + 1); // 1-indexed and skipping headers, so row index is i + 1
       deletedCount++;
     }

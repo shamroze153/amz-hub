@@ -177,21 +177,18 @@ export default function App() {
   // Buyer registration
   const handleRegisterBuyer = async (rawBuyer: Partial<BuyerUser>): Promise<BuyerUser> => {
     setIsLoading(true);
-    let newBuyer: BuyerUser;
+    // Always add to local SimulatedDB first (offline-first & resilient)
+    const newBuyer = SimulatedDB.addBuyer(rawBuyer);
+    
     if (config.mode === 'live') {
       try {
         const res = await LiveGASClient.addBuyer(config, rawBuyer);
-        if (res && res.buyer) {
-          newBuyer = res.buyer;
-        } else {
-          throw new Error('Failed to register buyer user database row.');
-        }
+        console.log("Background sync for new buyer completed successfully:", res);
       } catch (err: any) {
-        setIsLoading(false);
-        throw new Error(`GAS Sync buyer failure: ${err.message}`);
+        console.warn("Background sync for new buyer failed:", err);
+        setApiError(`Google Sheets Sync Notice: Account registered locally, but failed to sync to Google Sheets: ${err.message || ''}. Please verify your Spreadsheet Web App URL in settings.`);
+        setTimeout(() => setApiError(''), 15000);
       }
-    } else {
-      newBuyer = SimulatedDB.addBuyer(rawBuyer);
     }
     
     await loadDatabase(config);
@@ -242,7 +239,7 @@ export default function App() {
           loadDatabase(config); // Gently refresh in the background
         })
         .catch((err: any) => {
-          console.error("Background sync to Google Sheets failed:", err);
+          console.warn("Background sync to Google Sheets failed:", err);
           setApiError(`Background Sync Notice: ${err.message || 'CORS or spreadsheet communication error.'}`);
           setTimeout(() => setApiError(''), 10000);
         });
@@ -265,7 +262,7 @@ export default function App() {
           loadDatabase(config);
         })
         .catch((err: any) => {
-          console.error("Background sync of delivery proof failed:", err);
+          console.warn("Background sync of delivery proof failed:", err);
           setApiError(`Background Sync Notice: Failed to sync delivery proof. ${err.message}`);
           setTimeout(() => setApiError(''), 10000);
         });
@@ -291,7 +288,7 @@ export default function App() {
           loadDatabase(config);
         })
         .catch((err: any) => {
-          console.error("Background sync of order details failed:", err);
+          console.warn("Background sync of order details failed:", err);
           setApiError(`Background Sync Notice: Failed to sync order modifications. ${err.message}`);
           setTimeout(() => setApiError(''), 10000);
         });
@@ -317,7 +314,7 @@ export default function App() {
           loadDatabase(config);
         })
         .catch((err: any) => {
-          console.error("Background sync of order status failed:", err);
+          console.warn("Background sync of order status failed:", err);
           setApiError(`Background Sync Notice: Failed to sync order status update. ${err.message}`);
           setTimeout(() => setApiError(''), 10000);
         });
@@ -338,7 +335,7 @@ export default function App() {
           loadDatabase(config);
         })
         .catch((err: any) => {
-          console.error("Background sync for product failed:", err);
+          console.warn("Background sync for product failed:", err);
           setApiError(`Background Sync Notice: Product creation sync failed. ${err.message || ''}`);
           setTimeout(() => setApiError(''), 10000);
         });
@@ -462,13 +459,11 @@ export default function App() {
         setProducts(prev => prev.filter(p => !targetIds.includes(p.id)));
         if (config.mode === 'live') {
           try {
-            for (const tid of targetIds) {
-              await LiveGASClient.deleteRecord(config, 'Products', 'Product ID', tid);
-            }
+            await LiveGASClient.deleteRecord(config, 'Products', 'Product ID', targetIds);
             setApiSuccess('Selected products deleted from Google Sheets!');
             setTimeout(() => setApiSuccess(''), 4000);
           } catch (err: any) {
-            console.error('Failed to delete products from Google Sheets:', err);
+            console.warn('Failed to delete products from Google Sheets:', err);
             setApiError(`Failed to delete from Google Sheets: ${err.message || ''}`);
             setTimeout(() => setApiError(''), 10000);
           }
@@ -480,13 +475,11 @@ export default function App() {
         setAgents(prev => prev.filter(a => !targetIds.includes(a.id)));
         if (config.mode === 'live') {
           try {
-            for (const tid of targetIds) {
-              await LiveGASClient.deleteRecord(config, 'Agents', 'Agent ID', tid);
-            }
+            await LiveGASClient.deleteRecord(config, 'Agents', 'Agent ID', targetIds);
             setApiSuccess('Selected agents deleted from Google Sheets!');
             setTimeout(() => setApiSuccess(''), 4000);
           } catch (err: any) {
-            console.error('Failed to delete agents from Google Sheets:', err);
+            console.warn('Failed to delete agents from Google Sheets:', err);
             setApiError(`Failed to delete from Google Sheets: ${err.message || ''}`);
             setTimeout(() => setApiError(''), 10000);
           }
@@ -498,13 +491,11 @@ export default function App() {
         setSellers(prev => prev.filter(s => !targetIds.includes(s.id)));
         if (config.mode === 'live') {
           try {
-            for (const tid of targetIds) {
-              await LiveGASClient.deleteRecord(config, 'Sellers', 'Seller ID', tid);
-            }
+            await LiveGASClient.deleteRecord(config, 'Sellers', 'Seller ID', targetIds);
             setApiSuccess('Selected sellers deleted from Google Sheets!');
             setTimeout(() => setApiSuccess(''), 4000);
           } catch (err: any) {
-            console.error('Failed to delete sellers from Google Sheets:', err);
+            console.warn('Failed to delete sellers from Google Sheets:', err);
             setApiError(`Failed to delete from Google Sheets: ${err.message || ''}`);
             setTimeout(() => setApiError(''), 10000);
           }
@@ -516,13 +507,11 @@ export default function App() {
         setBuyers(prev => prev.filter(b => !targetIds.includes(b.id)));
         if (config.mode === 'live') {
           try {
-            for (const tid of targetIds) {
-              await LiveGASClient.deleteRecord(config, 'Buyers', 'Buyer ID', tid);
-            }
+            await LiveGASClient.deleteRecord(config, 'Buyers', 'Buyer ID', targetIds);
             setApiSuccess('Selected buyers deleted from Google Sheets!');
             setTimeout(() => setApiSuccess(''), 4000);
           } catch (err: any) {
-            console.error('Failed to delete buyers from Google Sheets:', err);
+            console.warn('Failed to delete buyers from Google Sheets:', err);
             setApiError(`Failed to delete from Google Sheets: ${err.message || ''}`);
             setTimeout(() => setApiError(''), 10000);
           }
@@ -534,20 +523,18 @@ export default function App() {
         setOrders(prev => prev.filter(o => !targetIds.includes(o.id)));
         if (config.mode === 'live') {
           try {
-            for (const tid of targetIds) {
-              await LiveGASClient.deleteRecord(config, 'Orders', 'Order ID', tid);
-            }
+            await LiveGASClient.deleteRecord(config, 'Orders', 'Order ID', targetIds);
             setApiSuccess('Selected orders deleted from Google Sheets!');
             setTimeout(() => setApiSuccess(''), 4000);
           } catch (err: any) {
-            console.error('Failed to delete orders from Google Sheets:', err);
+            console.warn('Failed to delete orders from Google Sheets:', err);
             setApiError(`Failed to delete from Google Sheets: ${err.message || ''}`);
             setTimeout(() => setApiError(''), 10000);
           }
         }
       }
     } catch (e) {
-      console.error(e);
+      console.warn(e);
     }
 
     await loadDatabase(config);
@@ -566,7 +553,7 @@ export default function App() {
           loadDatabase(config);
         })
         .catch((err: any) => {
-          console.error("Background sync for agent failed:", err);
+          console.warn("Background sync for agent failed:", err);
           setApiError(`Background Sync Notice: Agent registration sync failed. ${err.message || ''}`);
           setTimeout(() => setApiError(''), 10000);
         });
@@ -595,7 +582,7 @@ export default function App() {
           loadDatabase(config);
         })
         .catch((err: any) => {
-          console.error("Background sync for seller failed:", err);
+          console.warn("Background sync for seller failed:", err);
           setApiError(`Background Sync Notice: Seller creation sync failed. ${err.message || ''}`);
           setTimeout(() => setApiError(''), 10000);
         });
@@ -624,7 +611,7 @@ export default function App() {
           loadDatabase(config);
         })
         .catch((err: any) => {
-          console.error("Background sync for buyer failed:", err);
+          console.warn("Background sync for buyer failed:", err);
           setApiError(`Background Sync Notice: Buyer registration sync failed. ${err.message || ''}`);
           setTimeout(() => setApiError(''), 10000);
         });
