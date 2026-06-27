@@ -31,6 +31,7 @@ export default function SystemSettings({ config, isOpen, onClose, onSave }: Syst
   const [currentMode, setCurrentMode] = useState<'simulated' | 'live'>(config.mode);
   const [backendUrl, setBackendUrl] = useState(config.backendUrl);
   const [copied, setCopied] = useState(false);
+  const [validationError, setValidationError] = useState('');
 
   if (!isOpen) return null;
 
@@ -42,6 +43,22 @@ export default function SystemSettings({ config, isOpen, onClose, onSave }: Syst
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (currentMode === 'live') {
+      const url = backendUrl.trim();
+      if (!url) {
+        setValidationError('Please enter a Web App URL.');
+        return;
+      }
+      if (url.includes('docs.google.com/spreadsheets')) {
+        setValidationError('⚠️ You entered your Google Sheets Spreadsheet URL instead of the Google Apps Script Web App URL! You must open Extensions -> Apps Script inside your sheet, click "Deploy" -> "New deployment" as a "Web App", authorize it, set "Who has access" to "Anyone", and copy the NEW generated Web App URL (which ends with "/exec"). Paste that URL here!');
+        return;
+      }
+      if (!url.endsWith('/exec') && !url.includes('/exec?')) {
+        setValidationError('⚠️ The Web App URL must end with "/exec". Please check your deployment URL and make sure it is not the Spreadsheet URL or a "/dev" URL.');
+        return;
+      }
+    }
+    setValidationError('');
     onSave({
       mode: currentMode,
       backendUrl: currentMode === 'live' ? backendUrl.trim() : '',
@@ -163,6 +180,13 @@ export default function SystemSettings({ config, isOpen, onClose, onSave }: Syst
                 <p className="font-sans text-[10px] text-slate-400">
                   The Web App URL should end with <code className="bg-slate-100 px-1 py-0.5 rounded text-amber-600">/exec</code>. Fill it in using the deployment workflow described below.
                 </p>
+              </div>
+            )}
+
+            {/* Validation Error Alert */}
+            {validationError && (
+              <div className="bg-rose-50 border border-rose-200 text-rose-800 text-xs p-4 rounded-xl font-medium leading-relaxed font-sans">
+                {validationError}
               </div>
             )}
 

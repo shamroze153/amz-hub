@@ -325,13 +325,13 @@ export default function AgentPage({ agents, products, orders, onSubmitOrder }: A
                 <form onSubmit={handleVerifyPasscode} className="space-y-4">
                   <div className="space-y-1.5">
                     <label className="block font-sans text-[10px] font-bold text-slate-600 uppercase tracking-wider">
-                      Agent Passcode (Referral Code)
+                      Agent Passcode
                     </label>
                     <input
                       type="password"
                       autoFocus
                       required
-                      placeholder="Enter referral code (e.g. agent01)"
+                      placeholder="Enter Passcode"
                       value={passcodeInput}
                       onChange={(e) => setPasscodeInput(e.target.value)}
                       className="w-full text-center tracking-wide rounded-xl border border-slate-250 px-3 py-2.5 font-mono text-xs text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"

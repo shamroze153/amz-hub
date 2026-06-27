@@ -505,64 +505,52 @@ export default function BuyerPage({
           {activeProductForModal ? (
             <div id="cashback-checkout-page" className="max-w-6xl mx-auto space-y-8 animate-fadeIn pt-6 text-left">
               {submissionSuccess ? (
-                /* GORGEOUS FULL-PAGE REALTIME SUCCESS RECEIPT */
-                <div className="max-w-3xl mx-auto bg-white border border-slate-100 rounded-[2.5rem] p-8 sm:p-12 text-center space-y-8 animate-scaleUp shadow-md mt-6">
-                  <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-5xl shadow-sm border border-emerald-100">
+                /* SIMPLIFIED BEAUTIFUL SUCCESS SCREEN */
+                <div className="max-w-2xl mx-auto bg-white border border-slate-100 rounded-[2.5rem] p-8 sm:p-10 text-center space-y-6 animate-scaleUp shadow-md mt-6">
+                  <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-4xl shadow-sm border border-emerald-100">
                     🎉
                   </div>
                   
-                  <div className="space-y-3">
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-650 font-mono bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
-                      REBATE STATUS: SUCCESSFULLY SUBMITTED
+                  <div className="space-y-2">
+                    <span className="inline-block text-[10px] uppercase font-bold tracking-widest text-emerald-600 font-mono bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+                      CLAIM RECORDED & SYNCED
                     </span>
-                    <h3 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">Your Cashback Order Has Been Recorded!</h3>
-                    <p className="text-xs sm:text-sm text-slate-500 max-w-xl mx-auto leading-relaxed">
-                      We received your Amazon Order snapshot proof. The system has automatically synchronized this rebate claim with our active Google Sheets database ledger.
+                    <h3 className="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">Order Submitted Successfully!</h3>
+                    <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                      Your cashback claim has been recorded and synced to the Google Sheet.
                     </p>
                   </div>
 
-                  {/* Receipt Card Details Box */}
-                  <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200/60 text-left space-y-4 max-w-xl mx-auto text-slate-850">
-                    <h4 className="text-[11px] uppercase tracking-wider font-extrabold text-slate-400 font-mono">Receipt Claim Summary</h4>
-                    
-                    <div className="flex gap-4 pb-4 border-b border-slate-200 items-center">
+                  {/* Compact Claim Details */}
+                  <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200/60 text-left space-y-3 max-w-md mx-auto text-slate-800">
+                    <div className="flex gap-3 pb-3 border-b border-slate-200 items-center">
                       <img 
                         src={activeProductForModal.imageUrl} 
                         alt={activeProductForModal.name} 
-                        className="w-16 h-16 object-cover rounded-2xl border border-slate-200 bg-white" 
+                        className="w-12 h-12 object-cover rounded-xl border border-slate-200 bg-white" 
                         onError={(e) => {
                           e.currentTarget.src = "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600";
                         }}
                       />
                       <div className="space-y-0.5">
-                        <p className="text-[10px] text-slate-400 font-bold uppercase">{activeProductForModal.sellerName || 'Amazon Brand'}</p>
-                        <h5 className="font-sans text-xs sm:text-[13px] font-bold text-slate-800 line-clamp-1">{activeProductForModal.name}</h5>
-                        <span className="inline-block text-xs font-black text-emerald-600 font-mono">${activeProductForModal.cashbackAmount.toFixed(2)} Cashback Pending</span>
+                        <h5 className="font-sans text-xs font-bold text-slate-800 line-clamp-1">{activeProductForModal.name}</h5>
+                        <span className="inline-block text-xs font-black text-emerald-600 font-mono">${activeProductForModal.cashbackAmount.toFixed(2)} Cashback</span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-1">
+                    <div className="grid grid-cols-2 gap-3 text-[11px]">
                       <div>
-                        <span className="block text-[10px] text-slate-400 uppercase font-bold tracking-wider">Amazon Order ID</span>
-                        <span className="block font-mono font-black text-slate-850 bg-white border border-slate-200 px-2.5 py-1.5 rounded-lg mt-1 text-[11px] select-all tracking-wide">{formOrderId}</span>
+                        <span className="block text-[9px] text-slate-400 uppercase font-bold">Amazon Order ID</span>
+                        <span className="block font-mono font-bold text-slate-800 mt-0.5">{formOrderId}</span>
                       </div>
                       <div>
-                        <span className="block text-[10px] text-slate-400 uppercase font-bold tracking-wider">Payout Destination</span>
-                        <span className="block text-slate-800 font-bold mt-1 bg-white border border-slate-200 px-2.5 py-1.5 rounded-lg text-[11px]">{(buyerSession?.paymentMethod || paymentMethod || 'Zelle').toUpperCase()} ({buyerSession?.paymentId || paymentId})</span>
-                      </div>
-                    </div>
-
-                    {/* Processing Time Banner aligning with average 24-72 hours */}
-                    <div className="bg-amber-50 rounded-2xl p-4 border border-amber-200/50 flex gap-3 text-xs text-amber-900 leading-normal font-sans">
-                      <span className="text-base select-none">⌛</span>
-                      <div>
-                        <strong className="font-bold text-amber-950">Avg. Processing Time: 24-72 hours.</strong>
-                        <p className="text-[11px] text-amber-800/90 mt-0.5 font-normal">Our brand seller reviews order IDs during business hours. Tracking is updated in real-time under My Orders tracker.</p>
+                        <span className="block text-[9px] text-slate-400 uppercase font-bold">Payout Wallet</span>
+                        <span className="block text-slate-800 font-medium mt-0.5">{(buyerSession?.paymentMethod || paymentMethod || 'Zelle').toUpperCase()}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row justify-center gap-3 pt-4 max-w-xl mx-auto">
+                  <div className="flex flex-col sm:flex-row justify-center gap-2.5 pt-2 max-w-md mx-auto">
                     <button
                       type="button"
                       onClick={() => {
@@ -576,9 +564,9 @@ export default function BuyerPage({
                         setPaymentId('');
                         setCurrentTab('orders');
                       }}
-                      className="flex-1 py-3.5 bg-indigo-600 hover:bg-indigo-700 font-bold text-xs rounded-xl text-white transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+                      className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 font-bold text-xs rounded-xl text-white transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5"
                     >
-                      <span>📦 View My Orders Ledger</span>
+                      <span>👤 View My Orders</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
                     <button
@@ -593,9 +581,9 @@ export default function BuyerPage({
                         setWizardStep(1);
                         setPaymentId('');
                       }}
-                      className="flex-1 py-3.5 bg-slate-100 hover:bg-slate-200 font-bold text-xs rounded-xl text-slate-700 transition-all cursor-pointer border border-slate-200"
+                      className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 font-bold text-xs rounded-xl text-slate-700 transition-all cursor-pointer border border-slate-200"
                     >
-                      🛒 Browse More Deals
+                      🛍️ Back to Homepage
                     </button>
                   </div>
                 </div>
@@ -2596,7 +2584,7 @@ export default function BuyerPage({
                 🔑
               </span>
               <p className="text-xs text-slate-600 leading-relaxed max-w-xs mx-auto">
-                Ready to manage your active buyer network or submit rebates? Select **Agent Login** from the bottom footer to authenticate your dashboard with a passcode.
+                Manage your affiliate buyer network or submit rebates directly via the <strong>Agent Portal</strong> at the top of the page.
               </p>
               
               <div className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 border border-indigo-150 px-3.5 py-1 text-[10px] font-medium rounded-full">
@@ -2674,7 +2662,19 @@ export default function BuyerPage({
                       </p>
                     </div>
 
-                    <div className="flex justify-center gap-3 pt-3">
+                    <div className="flex flex-col sm:flex-row justify-center gap-2.5 pt-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSubmissionSuccess(false);
+                          setIsSubmitOrderOpen(false);
+                          setActiveProductForModal(null);
+                          setCurrentTab('deals');
+                        }}
+                        className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 font-extrabold text-xs rounded-xl text-slate-200 transition-all cursor-pointer border border-slate-750 flex items-center justify-center gap-1"
+                      >
+                        ← Back to Home
+                      </button>
                       <button
                         type="button"
                         onClick={() => {
@@ -2683,9 +2683,9 @@ export default function BuyerPage({
                           setActiveProductForModal(null);
                           setCurrentTab('orders');
                         }}
-                        className="px-4 py-2 bg-indigo-650 hover:bg-indigo-600 font-bold text-xs rounded-xl text-white transition-all cursor-pointer shadow-md"
+                        className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 font-extrabold text-xs rounded-xl text-white transition-all cursor-pointer shadow-md flex items-center justify-center gap-1"
                       >
-                        Go to My Orders
+                        View My Orders →
                       </button>
                     </div>
                   </div>

@@ -233,18 +233,18 @@ export default function App() {
 
     // 3. Dispatch background network sync if live
     if (config.mode === 'live') {
-      LiveGASClient.addOrder(config, orderData)
-        .then(() => {
-          console.log("Background sync to Google Sheets completed successfully!");
-          loadDatabase(config); // Gently refresh in the background
-        })
-        .catch((err: any) => {
-          console.warn("Background sync to Google Sheets failed:", err);
-          setApiError(`Background Sync Notice: ${err.message || 'CORS or spreadsheet communication error.'}`);
-          setTimeout(() => setApiError(''), 10000);
-        });
+      try {
+        await LiveGASClient.addOrder(config, orderData);
+        console.log("Sync to Google Sheets completed successfully!");
+        await loadDatabase(config); // Gently refresh
+      } catch (err: any) {
+        console.warn("Sync to Google Sheets failed:", err);
+        setApiError(`Google Sheets Connection Failed: ${err.message || 'CORS or spreadsheet communication error.'}`);
+        setTimeout(() => setApiError(''), 15000);
+        throw new Error(err.message || 'CORS or spreadsheet communication error. Please check your Web App URL deployment!');
+      }
     } else {
-      loadDatabase(config);
+      await loadDatabase(config);
     }
   };
 
@@ -257,15 +257,15 @@ export default function App() {
     }
 
     if (config.mode === 'live') {
-      LiveGASClient.submitDeliveryProof(config, orderId, deliveryScreenshotUrl)
-        .then(() => {
-          loadDatabase(config);
-        })
-        .catch((err: any) => {
-          console.warn("Background sync of delivery proof failed:", err);
-          setApiError(`Background Sync Notice: Failed to sync delivery proof. ${err.message}`);
-          setTimeout(() => setApiError(''), 10000);
-        });
+      try {
+        await LiveGASClient.submitDeliveryProof(config, orderId, deliveryScreenshotUrl);
+        await loadDatabase(config);
+      } catch (err: any) {
+        console.warn("Sync of delivery proof failed:", err);
+        setApiError(`Google Sheets Sync Failed: ${err.message || ''}`);
+        setTimeout(() => setApiError(''), 10000);
+        throw err;
+      }
     }
   };
 
@@ -283,15 +283,15 @@ export default function App() {
     }
 
     if (config.mode === 'live') {
-      LiveGASClient.updateOrderDetails(config, orderId, amazonId, paymentMethod, paymentId)
-        .then(() => {
-          loadDatabase(config);
-        })
-        .catch((err: any) => {
-          console.warn("Background sync of order details failed:", err);
-          setApiError(`Background Sync Notice: Failed to sync order modifications. ${err.message}`);
-          setTimeout(() => setApiError(''), 10000);
-        });
+      try {
+        await LiveGASClient.updateOrderDetails(config, orderId, amazonId, paymentMethod, paymentId);
+        await loadDatabase(config);
+      } catch (err: any) {
+        console.warn("Sync of order details failed:", err);
+        setApiError(`Google Sheets Sync Failed: ${err.message || ''}`);
+        setTimeout(() => setApiError(''), 10000);
+        throw err;
+      }
     }
   };
 
@@ -309,15 +309,15 @@ export default function App() {
     }
 
     if (config.mode === 'live') {
-      LiveGASClient.updateOrderStatus(config, orderId, status, notes, proof)
-        .then(() => {
-          loadDatabase(config);
-        })
-        .catch((err: any) => {
-          console.warn("Background sync of order status failed:", err);
-          setApiError(`Background Sync Notice: Failed to sync order status update. ${err.message}`);
-          setTimeout(() => setApiError(''), 10000);
-        });
+      try {
+        await LiveGASClient.updateOrderStatus(config, orderId, status, notes, proof);
+        await loadDatabase(config);
+      } catch (err: any) {
+        console.warn("Sync of order status failed:", err);
+        setApiError(`Google Sheets Sync Failed: ${err.message || ''}`);
+        setTimeout(() => setApiError(''), 10000);
+        throw err;
+      }
     }
   };
 
@@ -329,18 +329,17 @@ export default function App() {
 
     // 2. Background Sync if live mode
     if (config.mode === 'live') {
-      LiveGASClient.addProduct(config, product)
-        .then(() => {
-          console.log("Background sync for new product completed successfully!");
-          loadDatabase(config);
-        })
-        .catch((err: any) => {
-          console.warn("Background sync for product failed:", err);
-          setApiError(`Background Sync Notice: Product creation sync failed. ${err.message || ''}`);
-          setTimeout(() => setApiError(''), 10000);
-        });
+      try {
+        await LiveGASClient.addProduct(config, product);
+        await loadDatabase(config);
+      } catch (err: any) {
+        console.warn("Sync for product failed:", err);
+        setApiError(`Google Sheets Sync Failed: ${err.message || ''}`);
+        setTimeout(() => setApiError(''), 10000);
+        throw err;
+      }
     } else {
-      loadDatabase(config);
+      await loadDatabase(config);
     }
   };
 
@@ -640,14 +639,11 @@ export default function App() {
       {/* 1. Header Navigation block - wrapped in relative z-10 */}
       <div className="relative z-10">
         <Header 
+          role={role}
+          setRole={setRole}
           currentTab={currentTab}
           setCurrentTab={(tab) => {
             setCurrentTab(tab);
-            if (tab === 'admin') {
-              setRole('admin');
-            } else {
-              setRole('buyer');
-            }
             setTrackOrderId('');
           }}
           activeRefAgent={activeRefAgent} 
@@ -660,19 +656,33 @@ export default function App() {
 
       {/* 2. Top Banner Errors / Successes space-dark notifications */}
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 mt-4 space-y-2 relative z-10">
-        {role === 'admin' && apiError && (
-          <div className="rounded-2xl bg-white border border-orange-200 p-4 text-xs text-orange-850 flex items-start gap-2.5 shadow-md transition-all animate-slideDown">
-            <AlertCircle className="h-4.5 w-4.5 shrink-0 text-orange-600 mt-0.5" />
+        {role === 'admin' && config.mode === 'live' && (!config.backendUrl || config.backendUrl.includes('AKfycbwCO0xMbrxKQ6x2K2kSe4LBOL7UYv-wnawgCxhXK5_uTjwUz08asac-PXj8uAJMwD0u')) && (
+          <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-xs text-amber-900 flex items-start gap-2.5 shadow-sm transition-all animate-slideDown">
+            <span className="text-lg mt-0.5 shrink-0">📋</span>
             <div>
-              <p className="font-sans font-bold text-orange-950 mb-0.5">Database Synced Alert</p>
-              <span className="font-sans leading-relaxed text-slate-650">{apiError}</span>
+              <p className="font-sans font-bold text-amber-950 mb-0.5">Connected to Shared Demo Sheet</p>
+              <p className="font-sans leading-relaxed text-amber-800">
+                You are currently connected to the shared Happiness Hub template database. 
+                Submitted orders will write to the shared demo sheet and NOT your personal sheet. 
+                To link your own spreadsheet: click the <strong>⚙️ Settings icon</strong> in the top-right, follow the simple deployment instructions, and save your custom Web App URL!
+              </p>
+            </div>
+          </div>
+        )}
+
+        {role === 'admin' && apiError && (
+          <div className="rounded-2xl bg-white border border-rose-200 p-4 text-xs text-rose-900 flex items-start gap-2.5 shadow-md transition-all animate-slideDown">
+            <AlertCircle className="h-4.5 w-4.5 shrink-0 text-rose-600 mt-0.5" />
+            <div>
+              <p className="font-sans font-bold text-rose-950 mb-0.5">Google Sheets Synchronization Notice</p>
+              <span className="font-sans leading-relaxed text-slate-600">{apiError}</span>
             </div>
           </div>
         )}
 
         {role === 'admin' && apiSuccess && (
           <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 text-xs text-emerald-850 flex items-center gap-2.5 shadow-md transition-all animate-slideDown">
-            <CheckCircle className="h-4.5 w-4.5 text-emerald-600" />
+            <CheckCircle className="h-4.5 w-4.5 text-emerald-600 shrink-0" />
             <span className="font-sans font-bold">{apiSuccess}</span>
           </div>
         )}
@@ -840,54 +850,11 @@ export default function App() {
         onCancel={() => setDeleteTarget(null)}
       />
 
-      {/* 5. Stunning Deep Dark Footer (Exactly matching layout in Screenshot 2) */}
-      <footer className="border-t border-slate-200 bg-white py-8 text-center text-[11px] text-slate-500 font-sans relative z-10 shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-3">
-          <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-slate-600 font-bold">
-            <span>© 2026 Happiness Hub</span>
-            <span className="text-slate-200">•</span>
-            <button 
-              onClick={() => {
-                setRole('buyer');
-                setCurrentTab('track');
-              }}
-              className="hover:text-indigo-600 hover:underline transition cursor-pointer"
-            >
-              Track Order
-            </button>
-            <span className="text-slate-200">•</span>
-            <button
-              onClick={() => {
-                setRole('agent');
-                setCurrentTab('deals');
-              }}
-              className="hover:text-indigo-600 hover:underline transition cursor-pointer"
-            >
-              Agent Login
-            </button>
-            <span className="text-slate-200">•</span>
-            <button
-              onClick={() => {
-                setRole('seller');
-                setCurrentTab('deals');
-              }}
-              className="hover:text-indigo-600 hover:underline transition cursor-pointer"
-            >
-              Seller Login
-            </button>
-            <span className="text-slate-200">•</span>
-            <button 
-              onClick={() => {
-                setRole('admin');
-                setCurrentTab('admin');
-              }}
-              className="hover:text-indigo-600 hover:underline transition cursor-pointer"
-            >
-              Admin
-            </button>
-          </div>
-          <p className="text-slate-400 max-w-md mx-auto leading-relaxed font-normal">
-            A frictionless AI-powered cashback distribution channel synchronized automatically to active Google Sheets database structures.
+      {/* Minimalist Clean Footer */}
+      <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-450 font-sans relative z-10">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <p className="font-semibold text-slate-600">
+            © 2026 Happiness Hub &bull; Google Sheets Cashback Platform
           </p>
         </div>
       </footer>
