@@ -92,9 +92,10 @@ export default function App() {
   // 1. Initial Load Database States
   const loadDatabase = useCallback(async (currentConfig: HubConfig) => {
     setApiError('');
+    setIsLoading(true);
 
-    if (currentConfig.mode === 'live' && currentConfig.backendUrl) {
-      try {
+    try {
+      if (currentConfig.mode === 'live' && currentConfig.backendUrl) {
         // Attempt syncing to active Google Apps Script Web App
         const res = await LiveGASClient.getAllData(currentConfig);
         if (res && res.products) {
@@ -115,12 +116,14 @@ export default function App() {
           setTimeout(() => setApiSuccess(''), 4000);
           return;
         }
-      } catch (err: any) {
-        // Handle CORS, Network, or script config error gracefully
-        console.warn('Apps Script fetch failed, falling back to cached local database:', err);
-        setApiError(`Live Sheets Connection Failed: ${err.message || 'CORS Security exception'}. Using Cached Local Database.`);
-        setTimeout(() => setApiError(''), 10000);
       }
+    } catch (err: any) {
+      // Handle CORS, Network, or script config error gracefully
+      console.warn('Apps Script fetch failed, falling back to cached local database:', err);
+      setApiError(`Live Sheets Connection Failed: ${err.message || 'CORS Security exception'}. Using Cached Local Database.`);
+      setTimeout(() => setApiError(''), 10000);
+    } finally {
+      setIsLoading(false);
     }
 
     // Always keep state synced with cache as fallback
@@ -134,6 +137,17 @@ export default function App() {
   // Sync when config changes
   useEffect(() => {
     loadDatabase(config);
+
+    // Auto-update query param to support sharing existing state and settings
+    if (config.mode === 'live' && config.backendUrl && !config.backendUrl.includes('AKfycbwCO0xMbrxKQ6x2K2kSe4LBOL7UYv-wnawgCxhXK5_uTjwUz08asac-PXj8uAJMwD0u')) {
+      const params = new URLSearchParams(window.location.search);
+      const currentParam = params.get('backendUrl');
+      if (currentParam !== config.backendUrl) {
+        params.set('backendUrl', config.backendUrl);
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        window.history.replaceState({}, '', newUrl);
+      }
+    }
   }, [config, loadDatabase]);
 
   // 2. URL Referral Parameter Detection
@@ -858,6 +872,18 @@ export default function App() {
           </p>
         </div>
       </footer>
+
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 backdrop-blur-[2px] transition-all duration-300">
+          <div className="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-3.5 border border-slate-100 max-w-xs text-center">
+            <div className="h-9 w-9 animate-spin rounded-full border-3 border-indigo-600 border-t-transparent" />
+            <div>
+              <p className="text-xs font-black text-slate-850">Syncing database...</p>
+              <p className="text-[10px] text-slate-400 font-medium mt-1">Communicating securely with Google Sheets</p>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

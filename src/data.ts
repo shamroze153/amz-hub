@@ -255,6 +255,20 @@ const DEFAULT_CONFIG: HubConfig = {
 
 // STORAGE ACTIONS
 export const getHubConfig = (): HubConfig => {
+  // Check if backendUrl is provided in the URL query string to support seamless sharing
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    const urlParam = params.get('backendUrl') || params.get('gasUrl') || params.get('sheetUrl');
+    if (urlParam) {
+      const configObj: HubConfig = {
+        backendUrl: decodeURIComponent(urlParam),
+        mode: 'live'
+      };
+      localStorage.setItem('hh_config', JSON.stringify(configObj));
+      return configObj;
+    }
+  }
+
   const config = localStorage.getItem('hh_config');
   if (config) {
     try {
@@ -299,7 +313,9 @@ export const saveRawData = (key: string, data: any) => {
 // Simulated Local Database Class
 export class SimulatedDB {
   static getProducts(): Product[] {
-    return loadRawData('hh_products', INITIAL_PRODUCTS);
+    const products = loadRawData('hh_products', INITIAL_PRODUCTS);
+    const deletedIds = loadRawData('hh_deleted_product_ids', []);
+    return products.filter((p: Product) => !deletedIds.includes(p.id));
   }
 
   static saveProducts(products: Product[]) {
@@ -483,6 +499,13 @@ export class SimulatedDB {
     const products = this.getProducts();
     const filtered = products.filter(p => p.id !== productId);
     this.saveProducts(filtered);
+
+    // Save to deleted IDs list to persist permanently
+    const deletedIds = loadRawData('hh_deleted_product_ids', []);
+    if (!deletedIds.includes(productId)) {
+      deletedIds.push(productId);
+      saveRawData('hh_deleted_product_ids', deletedIds);
+    }
   }
 
   static addAgent(agent: Partial<Agent>): Agent {
